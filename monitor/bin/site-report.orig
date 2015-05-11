@@ -1,0 +1,177 @@
+#!/usr/bin/perl
+###########################
+#  Name:	siteReport
+#  Owner:	Guavus GDS
+#  Version:	0.1
+###########################
+use strict;
+use Getopt::Long;
+use Data::Dumper;
+use Switch;
+
+my $hours=''; my $usage=''; my $help='';
+my $out=GetOptions(
+	'hours=i'	=>	\$hours,
+	'help!'		=>	\$help
+ 	);
+
+#------------------------------------------------- MAIN
+usage() && exit if (! $hours || $help);
+
+my $BASEPATH="/data/scripts/monitor";
+my $kpi="${BASEPATH}/var/kpis";
+
+usage() && exit if (! $hours=~/\d+/);
+my $countedDayStart=`date -d "\`date -d "$hours hours ago" +%Y/%m/%d\`" +%s`; chomp $countedDayStart;
+my $countedDayEnd=`date -d "\`date +%Y/%m/%d\`" +%s`; chomp $countedDayEnd;
+my $epochT=`date -d "\`date -d "$hours hours ago" +"%Y/%m/%d %H:00"\`" +%s`; chomp $epochT;
+
+my $rpt=readIn($kpi,$countedDayStart,$countedDayEnd,$epochT);
+report($rpt,$hours);
+
+#------------------------------------------------- SUBS 
+sub usage {
+   print <<EOF
+
+Usage:
+	./siteReport --hours=<integer>
+where,
+	<integer> = Number of hours for which site report is required. Maximum upto the KPI retention period.
+
+Example:
+	./siteReport --hours=6
+
+EOF
+}
+
+sub readIn {
+
+	my $k=shift;
+	my $start=shift;
+	my $end=shift;
+	my $epT=shift;
+	my $reprt={};
+
+	for (my $counter=$start;$counter<=$end;$counter+=86400) {
+		my $path=`date -d \@$counter +%Y/%m/%d`; chomp $path;
+		eval {
+			opendir(DR,"$k/$path") or die "$!\n";;
+		};
+		if ($@) {
+			print "--------Unable to find KPIs for : $path\n";
+			next;
+		}
+		my @fileList=readdir(DR);
+		close DR;
+
+		foreach my $file (@fileList) {
+			next if($file=~/^\./);
+			my @KPIs=`/bin/cat $k/$path/$file | sed 's/ //g' | awk -F "," '{if (\$1>=$epT) print ;\}'`;
+			chomp @KPIs;
+			foreach my $kpiStr (@KPIs) {
+				$kpiStr=~s/\s+//g; chomp $kpiStr;
+				next if($kpiStr=~/^#/);
+				my @splits=split(/,/,$kpiStr);
+				chomp @splits;
+				my $len=$#splits;
+				chomp $splits[4];
+                                $reprt->{$splits[1]}{$splits[0]}{$splits[3]}{$splits[2]}="$splits[4]"
+
+				#switch ($splits[1]) {
+				 #case 'availability'	{$reprt{'Node Availability'}{$splits[2]}{$splits[3]}{$splits[0]}="$splits[4]"}
+				 #case 'hdfs'		{$reprt{'HDFS Application'}{$splits[2]}{$splits[3]}{$splits[0]}="$splits[4]"}
+				 #case 'memUsed'		{$reprt{'Memory Utilization'}{$splits[2]}{$splits[3]}{$splits[0]}="$splits[4]"}
+				 #case 'cpuUsed'		{$reprt{'CPU Utilization'}{$splits[2]}{$splits[3]}{$splits[0]}="$splits[4]"}
+				 ##case 'local'		{$reprt{''}{$splits[2]}{$splits[3]}{$splits[0]}="$splits[4]"}
+				 #case 'collector'	{$reprt{'Collector Application'}{$splits[2]}{$splits[3]}{$splits[0]}="$splits[4]"}
+				 #case 'diskUsed'	{$reprt{"Disk Utilization $splits[2]"}{$splits[3]}{$splits[4]}{$splits[0]}="$splits[5]"}
+				#}
+
+			}
+		}
+	}
+	
+	return $reprt;
+}
+
+sub metrics {
+
+   my %metricDefinition=(
+			availability => { AppName 	=>	'Node Availability',
+					  Parameters 	=>	{ Time          =>      '0',
+								  Hostname	=>	'2',
+								  Available	=>	'4',
+								},
+					  Metric	=>	''
+					},
+
+			collector =>	{ AppName	=>	'Collector Statistics',
+					  Parameters	=>	{ Time          =>      '0',
+								  Adaptor	=>	'3',
+								  Stats		=>	'2',
+								} ,
+					  Metric	=>	'4'
+					},
+	);
+}
+
+sub report {
+	my $reportHash=shift;
+	my $hoursPast=shift;
+	my $l=length($hoursPast);
+	my $adjMnt=6-$l;
+	
+	print "\n"; print "-" x 160 . "\n"; 
+	my $header="\t" x 6 . "*" x 40 . "\n";
+	$header.="\t" x 6 . "*" x 3 . " Site Report for last $hoursPast hour(s) " . "*" x $adjMnt ."\n";
+	$header.="\t" x 6 . "*" x 40 . "\n";
+	my $st=`date +%Y-%m-%dT%H:%M`; chomp $st;
+	$header.="Generating Site Status Report at: $st\n";
+	print "$header";
+
+# KPI definition/collection must not exceed size of 5 comma separated values string.
+
+	# KPI Level
+	foreach my $kpi (keys %$reportHash) {
+		my $data='';
+		my $rpt="Stamp\t\t";
+		my $flag=0;
+		my @subHead=();
+		next if (!$kpi);
+		print "-" x 160 . "\n";
+		print "PARAMETER :\t$kpi\n";
+		print "-" x 160 . "\n";
+
+	# COLLECTION STAMP Level
+		foreach my $stamp (sort (keys %{$$reportHash{$kpi}})) {
+			next if ($stamp == 0);
+			my $t=`date -d \@$stamp +%Y-%m-%dT%H:%M`; chomp $t;
+			$data.="$t\t\t";	
+
+	# METRIC Level
+			foreach my $metric (keys %{$$reportHash{$kpi}{$stamp}}) {
+
+	# APPLICATION Level
+				foreach my $app (keys %{$$reportHash{$kpi}{$stamp}{$metric}}) {
+					if ($flag == 0){
+						$rpt.="$app($metric)\t";
+					} 
+					if ($$reportHash{$kpi}{$stamp}{$metric}{$app}) {
+						$data.="$$reportHash{$kpi}{$stamp}{$metric}{$app}\t\t\t";
+					} else {
+						$data.="N/A\t\t\t";
+					}
+					#$data.="$$reportHash{$kpi}{$stamp}{$metric}{$app}\t\t\t";
+				}
+			}
+			$data.="\n";
+			$flag=1;
+		}			
+		print "$rpt\n" . "-" x 160 ."\n";
+		print "$data\n";
+		print "-" x 160 . "\n";
+	}
+	return;
+}
+
+

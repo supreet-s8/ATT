@@ -1,0 +1,29 @@
+MAILTO=supreet.singh@guavus.com
+# KPIs
+*/1 * * * * 	root	/data/scripts/monitor/bin/JOBS/kpi_oneMinute.sh
+*/5 * * * * 	root	/data/scripts/monitor/bin/JOBS/kpi_fiveMinute.sh
+*/10 * * * * 	root	/data/scripts/monitor/bin/JOBS/kpi_tenMinute.sh
+*/15 * * * *	root	/data/scripts/monitor/bin/JOBS/kpi_fifteenMinute.sh
+*/30 * * * *	root	/data/scripts/monitor/bin/JOBS/kpi_thirtyMinute.sh
+20 * * * * 	root	/data/scripts/monitor/bin/JOBS/kpi_hourly.sh
+23 00 * * * 	root	/data/scripts/monitor/bin/JOBS/kpi_daily.sh
+# Triggers
+*/1 * * * *     root    /data/scripts/monitor/bin/JOBS/triggers_oneMinute.sh
+*/5 * * * *     root    /data/scripts/monitor/bin/JOBS/triggers_fiveMinute.sh
+*/10 * * * * 	root	/data/scripts/monitor/bin/JOBS/triggers_tenMinute.sh
+*/15 * * * *    root    /data/scripts/monitor/bin/JOBS/triggers_fifteenMinute.sh
+*/30 * * * *    root    /data/scripts/monitor/bin/JOBS/triggers_thirtyMinute.sh
+20 * * * *      root    /data/scripts/monitor/bin/JOBS/triggers_hourly.sh
+23 00 * * *     root    /data/scripts/monitor/bin/JOBS/triggers_daily.sh
+# Action Scripts
+*/1 * * * *     root    /data/scripts/monitor/bin/JOBS/actions_oneMinute.sh
+*/5 * * * *     root    /data/scripts/monitor/bin/JOBS/actions_fiveMinute.sh
+*/10 * * * *    root    /data/scripts/monitor/bin/JOBS/actions_tenMinute.sh
+*/15 * * * *    root    /data/scripts/monitor/bin/JOBS/actions_fifteenMinute.sh
+*/30 * * * *    root    /data/scripts/monitor/bin/JOBS/actions_thirtyMinute.sh
+20 * * * *      root    /data/scripts/monitor/bin/JOBS/actions_hourly.sh
+23 00 * * *     root    /data/scripts/monitor/bin/JOBS/actions_daily.sh
+# Site & Report
+26 00 * * * 	root	/data/scripts/monitor/bin/JOBS/sanitizeSite.sh
+00 01 * * * 	root	/data/scripts/monitor/bin/JOBS/send-report-in-email-attachment.sh
+

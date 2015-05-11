@@ -1,0 +1,178 @@
+#!/usr/bin/perl
+###########################
+#  Name:	siteReport
+#  Owner:	Guavus GDS
+#  Version:	0.1
+###########################
+use strict;
+use Getopt::Long;
+use Data::Dumper;
+use Switch;
+
+my $hours=''; my $usage=''; my $help='';
+my $out=GetOptions(
+	'hours=i'	=>	\$hours,
+	'help!'		=>	\$help
+ 	);
+
+#------------------------------------------------- MAIN
+usage() && exit if (! $hours || $help);
+
+my $BASEPATH="/data/scripts/monitor";
+my $kpi="${BASEPATH}/var/kpis";
+
+usage() && exit if (! $hours=~/\d+/);
+my $countedDayStart=`date -d "\`date -d "$hours hours ago" +%Y/%m/%d\`" +%s`; chomp $countedDayStart;
+my $countedDayEnd=`date -d "\`date +%Y/%m/%d\`" +%s`; chomp $countedDayEnd;
+my $epochT=`date -d "\`date -d "$hours hours ago" +"%Y/%m/%d %H:00"\`" +%s`; chomp $epochT;
+
+my $rpt=readIn($kpi,$countedDayStart,$countedDayEnd,$epochT);
+#print Dumper $rpt;
+#exit;
+report($rpt,$hours);
+
+#------------------------------------------------- SUBS 
+sub usage {
+   print <<EOF
+
+Usage:
+	./siteReport --hours=<integer>
+where,
+	<integer> = Number of hours for which site report is required. Maximum upto the KPI retention period.
+
+Example:
+	./siteReport --hours=6
+
+EOF
+}
+
+sub readIn {
+
+	my $k=shift;
+	my $start=shift;
+	my $end=shift;
+	my $epT=shift;
+	my $reprt={};
+
+	for (my $counter=$start;$counter<=$end;$counter+=86400) {
+		my $path=`date -d \@$counter +%Y/%m/%d`; chomp $path;
+		eval {
+			opendir(DR,"$k/$path") or die "$!\n";;
+		};
+		if ($@) {
+			print "--------Unable to find KPIs for : $path\n";
+			next;
+		}
+		my @fileList=readdir(DR);
+		close DR;
+
+		foreach my $file (@fileList) {
+			next if($file=~/^\./);
+			my @KPIs=`/bin/cat $k/$path/$file | sed 's/ //g' | awk -F "," '{if (\$1>=$epT) print ;\}'`;
+			chomp @KPIs;
+			foreach my $kpiStr (@KPIs) {
+				$kpiStr=~s/\s+//g; chomp $kpiStr;
+				next if($kpiStr=~/^#/);
+				my @splits=split(/,/,$kpiStr);
+				chomp @splits;
+				my $len=$#splits;
+                                $reprt->{$splits[1]}{$splits[0]}{$splits[3]}{$splits[2]}="$splits[4]";
+                                #$reprt->{$splits[1]}{$splits[0]}{$splits[3]}{$splits[2]}="$splits[$len]";
+			}
+		}
+	}
+	return $reprt;
+}
+
+
+sub report {
+	my $reportHash=shift;
+	my $hoursPast=shift;
+	my $l=length($hoursPast);
+	my $adjMnt=9-$l;
+	print "\n";
+	print "_" x 40 ."\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\n\n";
+	my $header="\t" x 2 . "*" x 40 . "\n";
+	$header.="\t" x 2 . "*" x 8 . " Site Report for last $hoursPast hour(s) " . "*" x $adjMnt ."\n";
+	$header.="\t" x 2 . "*" x 40 . "\n";
+	my $st=`date +%Y-%m-%dT%H:%M`; chomp $st;
+	$header.="Generating Site Status Report at:\t$st\n";
+	print "$header";
+	print "_" x 40 ."\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\n\n";
+
+# KPI definition/collection must not exceed size of 5 comma separated values string.
+
+	# KPI Level
+	foreach my $kpi (keys %$reportHash) {
+		my $data='';
+		my $rpt="Stamp\t";
+		my $flag=0;
+		my @subHead=();
+		my %applications=();
+		next if (!$kpi);
+		print "PARAMETER :\t$kpi\n";
+
+# Identify applications under the KPI collection interval - Only nodes/applications counter loop.
+	# COLLECTION STAMP Level
+		foreach my $stamp (sort (keys %{$$reportHash{$kpi}})) {
+			next if ($stamp == 0);
+
+	# METRIC Level
+			foreach my $metric (keys %{$$reportHash{$kpi}{$stamp}}) {
+
+	# APPLICATION Level
+				foreach my $app (keys %{$$reportHash{$kpi}{$stamp}{$metric}}) {
+					# one application may have multiple metrics like adaptorDroppedFlow_edrAsn has metric count and percent. To make the application vs metric to be unique we did following. This helps is preventing false value prints of "N/A" due to uneven combination of application vs metric. for example adaptorTotalFlow_edrAsn with metric percent.
+
+					#if ($$reportHash{$kpi}{$stamp}{$metric}{$app} or $$reportHash{$kpi}{$stamp}{$metric}{$app} eq '0') {
+						$applications{$app}{$metric}="1" if (! $applications{$app}{$metric});  
+					#}
+				}
+			}
+		}			
+
+#	print Dumper %applications;
+
+# Now fetch Data against the applications list/hash collected above. If no data for the mentioned application, put "N/A" in the output.
+                foreach my $stamp (sort (keys %{$$reportHash{$kpi}})) {
+                        next if ($stamp == 0);
+                        my $t=`date -d \@$stamp +%Y-%m-%dT%H:%M`; chomp $t;
+                        $data.="$t\t";
+	# Traversing application level first to avoid collision of metrics for every application level even when application does not supports the metric, thus prevents app/metric validation check.
+        # APPLICATION Level
+                        foreach my $app (sort {$a cmp $b} keys %applications) {
+        # METRIC Level
+        	                foreach my $metric (keys %{$applications{$app}}) {
+        # METRIC Level
+                        #foreach my $metric (keys %{$$reportHash{$kpi}{$stamp}}) {
+        # APPLICATION Level
+                               # foreach my $app (sort {$a cmp $b} keys %applications) {
+                                       if ($flag == 0){
+                                               $rpt.="$app($metric)\t"; #if ($applications{$app}{$metric} == 1);
+                                       }
+				       if ($$reportHash{$kpi}{$stamp}{$metric}{$app} eq '0') {
+						$data.="0\t" if ($applications{$app}{$metric} == 1);
+                                       } elsif (! $$reportHash{$kpi}{$stamp}{$metric}{$app}) {
+                                               $data.="N/A\t" if ($applications{$app}{$metric} == 1);
+                                       } else {
+                                               $data.="$$reportHash{$kpi}{$stamp}{$metric}{$app}\t";
+                                       }
+
+                                }
+                        }
+
+
+                        $data.="\n";
+                        $flag=1;
+                }
+
+		print "_" x 40 ."\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\n\n";
+		print "$rpt\n"; #. "-" x 160 ."\n";
+		print "$data\n";
+		print "_" x 40 ."\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\t" . "_" x 40 . "\n\n";
+		
+	}
+	return;
+}
+
+
