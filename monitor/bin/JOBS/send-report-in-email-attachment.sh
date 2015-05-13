@@ -12,6 +12,7 @@ else
 fi
 mount -o remount,rw / 2>/dev/null
 if [[ ! -s ${IP} ]]; then /bin/bash ${SITE}; else source ${IP}; fi
+if [[ `am_i_master` -eq '0' ]]; then exit 0; fi
 #-------------------------------------------------------------------------------------------------
 kpiFile="`basename $0 | awk -F "." '{print $1}'`"
 logFile='';logFile="${LOGS}/$kpiFile-`date +%Y%m%d.log`"

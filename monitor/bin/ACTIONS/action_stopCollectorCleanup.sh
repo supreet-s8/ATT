@@ -12,6 +12,7 @@ else
 fi
 mount -o remount,rw / 2>/dev/null
 if [[ ! -s ${IP} ]]; then /bin/bash ${SITE}; else source ${IP}; fi
+if [[ `am_i_master` -eq '0' ]]; then exit 0; fi
 #-------------------------------------------------------------------------------------------------
 function thresh {
    base=''; base=`basename $0 | awk -F_ '{print $2}' | awk -F. '{print $1}'`
@@ -29,8 +30,9 @@ SENDCC="supreet.singh@guavus.com"
 Email='0'
 stamp=`date +%s`
 Date=`date`
+Hostname=`hostname`
 msgFile='';msgFile="/tmp/$base-$stamp"
-printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $base.\n\n\n" >> ${msgFile}
+printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $Hostname : $base.\n\n\n" >> ${msgFile}
 
 sysUp='';sysUp=`$SSH $prefix$cnp0 "/bin/cat /proc/uptime" | awk -F '.' '{print $1}'`
 

@@ -12,8 +12,8 @@ else
 fi
 mount -o remount,rw / 2>/dev/null
 if [[ ! -s ${IP} ]]; then /bin/bash ${SITE}; else source ${IP}; fi
+if [[ `am_i_master` -eq '0' ]]; then exit 0; fi
 #-------------------------------------------------------------------------------------------------
-
 function thresh {
    base=''; base=`basename $0 | awk -F_ '{print $2}' | awk -F. '{print $1}'`
 }

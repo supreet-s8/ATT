@@ -12,6 +12,7 @@ else
 fi
 mount -o remount,rw / 2>/dev/null
 if [[ ! -s ${IP} ]]; then /bin/bash ${SITE}; else source ${IP}; fi
+if [[ `am_i_master` -eq '0' ]]; then exit 0; fi
 #-------------------------------------------------------------------------------------------------
 function thresh {
    base=''; base=`basename $0 | awk -F_ '{print $2}' | awk -F. '{print $1}'`
@@ -23,14 +24,15 @@ thresh
 stamp=`date +%s`
 #-------------------------------------------------------------------------------------------------
 
+for colIp in $col; do
 collectorServiceStatus='';
-collectorServiceStatus=`$SSH $cnp0vip "/opt/tms/bin/cli -t 'en' 'show pm process collector' " | grep "Current status" | awk -F ":" '{print $NF}' | sed 's/ //g'`
+collectorServiceStatus=`$SSH $colIp "/opt/tms/bin/cli -t 'en' 'show pm process collector' " | grep "Current status" | awk -F ":" '{print $NF}' | sed 's/ //g'`
 if [[ ${PIPESTATUS[0]} -ne '0' ]]; then collectorServiceStatus="N/A"; fi
 
   if [[ "${collectorServiceStatus}" != 'running' ]]; then
     #alert $collectorServiceStatus MASTER_COLLECTOR $stamp
-    . ${BIN}/email.sh "$collectorServiceStatus" "MASTER_COLLECTOR" "$stamp" "running" "$base"
+    . ${BIN}/email.sh "$collectorServiceStatus" "COLLECTOR_$colIp" "$stamp" "running" "$base"
   fi
-
+done
 # ----------------------------------------------------------------------------------------
 

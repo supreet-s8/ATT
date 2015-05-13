@@ -30,7 +30,8 @@ Email='0'
 stamp=`date +%s`
 Date=`date`
 msgFile='';msgFile="/tmp/$base-$stamp"
-printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $base.\n\n\n" >> ${msgFile}
+Hostname=`hostname`
+printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $Hostname : $base.\n\n\n" >> ${msgFile}
 echo "ACTION_SUMMARY : $Date" >> ${msgFile}
 
 if [[ `/bin/ls /etc/fstab 2>/dev/null` ]]; then

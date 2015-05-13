@@ -29,13 +29,14 @@ SENDCC="supreet.singh@guavus.com"
 Email='0'
 stamp=`date +%s`
 Date=`date`
+Hostname=`hostname`
 msgFile='';msgFile="/tmp/$base-$stamp"
-printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $base.\n\n\n" >> ${msgFile}
+printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $Hostname : $base.\n\n\n" >> ${msgFile}
 
-if [[ `$SSH $prefix$cnp0 "/bin/mount | grep -w '/data/collector'"` ]]; then 
-mountPoint=''; mountPoint=`$SSH $prefix$cnp0 "/bin/mount | grep -w '/data/collector'" | awk -F'(' '{print $2}' | awk -F, '{print $1}'`
+if [[ `/bin/mount | grep -w '/data/collector'` ]]; then 
+mountPoint=''; mountPoint=`/bin/mount | grep -w '/data/collector' | awk -F'(' '{print $2}' | awk -F, '{print $1}'`
 if [[ $mountPoint == "rw" ]]; then 
-    currentUtilization=''; currentUtilization=`$SSH $prefix$cnp0 "/bin/df -P" | grep -w "/data/collector" | awk '{print $5}' | sed 's/%//g'`
+    currentUtilization=''; currentUtilization=`/bin/df -P | grep -w "/data/collector" | awk '{print $5}' | sed 's/%//g'`
     if [[ $currentUtilization && ${PIPESTATUS[0]} -eq '0' ]]; then
 	if [[ `echo "$currentUtilization >= $threshold" | bc` -eq '1' ]]; then
 	# PERFORM THE DESIGNATED ACTION.
@@ -49,7 +50,7 @@ if [[ $mountPoint == "rw" ]]; then
 	       /bin/rm -f /data/collector/edrAsn_backup/*.gz 2>/dev/null
 	       if [ $? -eq 0 ]; then
 	   	   echo "STATUS : SUCCESS" >> ${msgFile}
-		   currentUtilization=''; currentUtilization=`$SSH $prefix$cnp0 "/bin/df -P" | grep -w "/data/collector" | awk '{print $5}' | sed 's/%//g'`
+		   currentUtilization=''; currentUtilization=`/bin/df -P | grep -w "/data/collector" | awk '{print $5}' | sed 's/%//g'`
 		   echo "Disk utilization of /data/collector now stands to be ${currentUtilization}%" >> ${msgFile}
 	       else
 	  	   echo "STATUS : FAILED : Exit status $?" >> ${msgFile}
