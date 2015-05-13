@@ -34,7 +34,7 @@ for host in $col $cmp; do
   if [[ ! ${hostn} ]]; then hostn="$prefix$host"; fi
   #-----
 
-  val='';val=`$SSH $prefix$host "/usr/bin/mpstat 1 5 | tail -4" | awk '{total+=$NF; count++} END{print total/count}' | awk '{if ( $1 <= 100 ) printf "%.2f\n",100-$NF; else print "100"}'`
+  val='';val=`$SSH $prefix$host "/usr/bin/mpstat 2 10 | tail -9" | awk '{total+=$NF; count++} END{print total/count}' | awk '{if ( $1 <= 100 ) printf "%.2f\n",100-$NF; else print "100"}'`
   if [[ $val ]]; then
     echo "$stamp,cpuUsed,$hostn,percent,$val" 
     #alert $val $hostn $stamp
