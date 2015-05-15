@@ -35,7 +35,7 @@ do
 	val=`$SSH ${host} "$HADOOP fsck / 2>/dev/null" |grep -i status|awk '{print $NF}'`
 	if [[ ! $val == HEALTHY ]]; then
 		
-		. ${BIN}/email.sh "$val" "HADOOP HEALTH" "$stamp" "fsck" "$base"
+		. ${BIN}/email.sh "$val" "FSCK" "$stamp" "HEALTHY" "$base"
   	fi	
 done
 

@@ -91,9 +91,10 @@ done
         ratioAll=$(awk "BEGIN {printf \"%.2f\",(${incomingRawFileSize}/${processedFileSizeTotal})}")
 	echo "$stamp,hdfs,compression_Total,ratio,$ratioAll"
 	#alert $ratioAll "RawFileSize Vs CompressedOutgoingFileSize" $stamp
-  	if [ `echo "${ratioAll} < ${threshold}" | bc` -eq '1' ]; then
-		. ${BIN}/email.sh "${ratioAll}" "RawFileSize Vs CompressedOutgoingFileSize" "$stamp" "$threshold" "$base"
-	fi
+        # Commenting alert based on compression ratio since included this in estimated compression ratio.
+  	#if [ `echo "${ratioAll} < ${threshold}" | bc` -eq '1' ]; then
+	#	. ${BIN}/email.sh "${ratioAll}" "RawFileSize Vs CompressedOutgoingFileSize" "$stamp" "$threshold" "$base"
+	#fi
       fi
 
       if [[ ${aggregate} -eq '0' ]]; then      
@@ -104,4 +105,28 @@ done
       fi
 
 # ----------------------------------------------------------------------------------------
+# Compression ratio based on estimated raw file size from processed collector output.
+      incomingRawFileSize='0'
+      H1=`date -d "${LATENCY} hours ago" +%Y/%m/%d/%H`
+      stamp1=`date -d "${LATENCY} hours ago" +%s`
+      val=`$SSH ${host} "$HADOOP dfs -dus /data/collector/output/edrAsn/$H1 2>/dev/null" | awk '{print $NF}'`
+      incomingRawFileSize=`echo "scale=2;($val)*$FACTOR" | bc 2>/dev/null`
+      #echo "$stamp,estimated_input_data_volume,${hostn},bytes,$incomingRawFileSize"
 
+      if [[ ${processedFileSizeTotal} -eq '0' ]]; then
+        echo "$stamp,hdfs,estimated_compression_Total,ratio,N/A"
+      else
+        ratioAll=$(awk "BEGIN {printf \"%.2f\",(${incomingRawFileSize}/${processedFileSizeTotal})}")
+        echo "$stamp,hdfs,estimated_compression_Total,ratio,$ratioAll"
+        if [ `echo "${ratioAll} < ${threshold}" | bc` -eq '1' ]; then
+                . ${BIN}/email.sh "${ratioAll}" "EstimatedRawFileSize Vs CompressedOutgoingFileSize" "$stamp" "$threshold" "$base"
+        fi
+      fi
+
+      if [[ ${aggregate} -eq '0' ]]; then
+        echo "$stamp,hdfs,estimated_compression_Primary,ratio,N/A"
+      else
+        ratioPrimary=$(awk "BEGIN {printf \"%.2f\",(${incomingRawFileSize}/${aggregate})}")
+        echo "$stamp,hdfs,estimated_compression_Primary,ratio,$ratioPrimary"
+      fi
+# ----------------------------------------------------------------------------------------

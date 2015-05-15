@@ -46,16 +46,16 @@ do
 	val=`$SSH ${host} "$HADOOP dfs -ls /data/collector/output/${adaptors}/$H1/${i}/* 2>/dev/null" | grep DONE`
 	if [[ ! $val ]]; then
 		
-		out+="${adaptors}/$H1/${i} "
+		out+="$H1/${i};"
 		 
   	fi	
   done
+  if [[ $out ]]
+  then
+	. ${BIN}/email.sh "Following bins missing for adaptor ${adaptors} $out" "COLLECTOR_$cnp0vip" "$stamp" "N/A" "$base"
+  fi
  done
 
 done
 
-if [[ $out ]]
-then
-	. ${BIN}/email.sh "$out" "COLLECTOR $cnp0vip" "$stamp" "MISSING BIN" "$base"
-fi
 #####

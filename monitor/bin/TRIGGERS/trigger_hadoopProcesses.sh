@@ -32,6 +32,7 @@ stamp=`date +%s`
 
 
 ServiceStatus=''
+pState=''
 for host in $cnp0vip
 do
 	for process in datanode namenode secondarynamenode jobtracker
@@ -39,9 +40,10 @@ do
 		ServiceStatus=`$SSH $host "/bin/ps -ef" | grep "Dproc_${process}" | grep -v grep`
 		if [ $? -ne 0 ]
 		then
-			. ${BIN}/email.sh "NULL" "COLLECTOR $host" "$stamp" "$process" "$base"
+			pState="$pState $process"
 		fi	
 	done
+	. ${BIN}/email.sh "Not_Running ($pState)" "NAMENODE_$host" "$stamp" "Running" "$base"
 
 done
 
@@ -51,6 +53,7 @@ done
 
 
 ServiceStatus=''
+pState=''
 
 for host in $col
 do
@@ -59,9 +62,11 @@ do
 		ServiceStatus=`$SSH $prefix$host "/bin/ps -ef" | grep "Dproc_${process}" | grep -v grep`
                 if [ $? -ne 0 ]
                 then
-                        . ${BIN}/email.sh "NULL" "COLLECTOR $prefix$host" "$stamp" "$process" "$base"
+			pState="$pState $process"
 		fi
         done
+
+	. ${BIN}/email.sh "Not_Running ($pState)" "COLLECTOR_$prefix$host" "$stamp" "Running" "$base"
 
 done
 
@@ -70,7 +75,7 @@ done
 ## DataNode
 
 ServiceStatus=''
-
+pState=''
 for host in $cmp
 do
         for process in datanode
@@ -78,10 +83,11 @@ do
                 ServiceStatus=`$SSH $prefix$host "/bin/ps -ef" | grep "Dproc_${process}" | grep -v grep`
                 if [ $? -ne 0 ]
                 then
-                        . ${BIN}/email.sh "NULL" "COLLECTOR $prefix$host" "$stamp" "$process" "$base"
+			pState="$pState $process"
 		fi
         done
 
+	. ${BIN}/email.sh "Not_Running ($pState)" "DATANODE_$prefix$host" "$stamp" "Running" "$base"
 done
 
 # ----------------------------------------------------------------------------------------

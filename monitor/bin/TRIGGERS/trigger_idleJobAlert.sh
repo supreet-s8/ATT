@@ -27,13 +27,9 @@ stamp=`date +%s`
 #-----
 # Idle_Job_Alert
 
-
-
 #####  JOB_LIST=<job name>:<frequency in min>
 
-
 JOB_LIST="DataFactoryJob:10,DataFactoryJob2:10"
-
 
 for list in `echo $JOB_LIST|sed 's/,/\n/g'`
 do
@@ -56,9 +52,8 @@ do
 
 	if [ $job_time_lag -gt $job_freq_stamp ]	## Alert if job running time is more than job threshold(job_freq_stamp)
 	then
-		. ${BIN}/email.sh "$job_time_lag min" "JOB STUCK ALERT FOR $job" "$stamp" "$job_freq min" "$base"
+		. ${BIN}/email.sh "$job_time_lag min" "JOB IDLE ALERT FOR $job" "$stamp" "$job_freq min" "$base"
 	fi
 done
-
 
 #####

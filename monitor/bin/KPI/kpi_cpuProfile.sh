@@ -55,15 +55,15 @@ for host in $col $cmp; do
   idle=`echo $val | awk '{print $11}'`
   if [[ ! $idle ]]; then idle="N/A" ;fi
 
-  echo "$stamp,CPU_Profile_$hostn,usr,percent,$usr"
-  echo "$stamp,CPU_Profile_$hostn,nice,percent,$nice"
-  echo "$stamp,CPU_Profile_$hostn,sys,percent,$sys"
-  echo "$stamp,CPU_Profile_$hostn,iowait,percent,$iowait"
-  echo "$stamp,CPU_Profile_$hostn,irq,percent,$irq"
-  echo "$stamp,CPU_Profile_$hostn,soft,percent,$soft"
-  echo "$stamp,CPU_Profile_$hostn,steal,percent,$stael"
-  echo "$stamp,CPU_Profile_$hostn,guest,percent,$guest"
-  echo "$stamp,CPU_Profile_$hostn,idle,percent,$idle"
+  echo "$stamp,cpu_profile_$hostn,usr,percent,$usr"
+  echo "$stamp,cpu_profile_$hostn,nice,percent,$nice"
+  echo "$stamp,cpu_profile_$hostn,sys,percent,$sys"
+  echo "$stamp,cpu_profile_$hostn,iowait,percent,$iowait"
+  echo "$stamp,cpu_profile_$hostn,irq,percent,$irq"
+  echo "$stamp,cpu_profile_$hostn,soft,percent,$soft"
+  echo "$stamp,cpu_profile_$hostn,steal,percent,$stael"
+  echo "$stamp,cpu_profile_$hostn,guest,percent,$guest"
+  echo "$stamp,cpu_profile_$hostn,idle,percent,$idle"
 
 
 done 2>/dev/null

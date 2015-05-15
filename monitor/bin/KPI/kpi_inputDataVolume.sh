@@ -29,7 +29,7 @@ stamp=`date +%s`
 
 H1=`date -d "${LATENCY} hours ago" +%Y/%m/%d/%H`
 #H1="2015/03/25/17"
-
+stamp1=`date -d "${LATENCY} hours ago" +%s`
 for host in $cnp0vip
 do
   #-----
@@ -42,14 +42,10 @@ do
  do  
   for i in `seq -w 00 05 55`
   do  
+	stamp=`echo "$stamp1+($i*60)" | bc 2>/dev/null`
 	val=`$SSH ${host} "$HADOOP dfs -dus /data/collector/output/${adaptors}/$H1/${i}/* 2>/dev/null | grep -v DONE" | awk 'BEGIN {sum = 0} { sum+= $NF } END { print sum }'` 
-	if [[ $val ]]; 
-	then
-		comp_ratio=`echo "scale=2;($val)*$MULTIPLIER" | bc 2>/dev/null`
-    		echo "$stamp,Input_Data_Volume_${hostn},bytes,$comp_ratio" 
-	else
-    		echo "$stamp,Input_Data_Volum_${hostn},bytes,N/A"
-  	fi
+	comp_ratio=`echo "scale=2;($val)*$FACTOR" | bc 2>/dev/null`
+    	echo "$stamp,estimated_input_data_volume,${hostn},bytes,$comp_ratio" 
   done
  done
 

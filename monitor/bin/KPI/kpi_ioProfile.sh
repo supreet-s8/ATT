@@ -35,6 +35,8 @@ for host in $col $cmp; do
   #-----
   
   val=`$SSH $prefix$host "/usr/bin/iostat -x 1 1" | grep vdb`
+  if [ $? -eq 0 ]
+  then
   rrqm=`echo $val | awk '{print $2}'` 
   if [[ ! $rrqm ]]; then rrqm="N/A"; fi
   wrqm=`echo $val| awk '{print $3}'`
@@ -58,18 +60,18 @@ for host in $col $cmp; do
   util=`echo $val | awk '{print $12}'`
   if [[ ! $util ]]; then util="N/A" ;fi
 
-  echo "$stamp,IO_Profile_$hostn,rrqm,second,$rrqm"
-  echo "$stamp,IO_Profile_$hostn,wrqm,second,$wrqm"
-  echo "$stamp,IO_Profile_$hostn,r,second,$r"
-  echo "$stamp,IO_Profile_$hostn,w,second,$w"
-  echo "$stamp,IO_Profile_$hostn,rsec,second,$rsec"
-  echo "$stamp,IO_Profile_$hostn,wsec,second,$wsec"
-  echo "$stamp,IO_Profile_$hostn,avgrq,second,$avgrq"
-  echo "$stamp,IO_Profile_$hostn,avgqu,second,$avgqu"
-  echo "$stamp,IO_Profile_$hostn,await,second,$await"
-  echo "$stamp,IO_Profile_$hostn,svctm,second,$svctm"
-  echo "$stamp,IO_Profile_$hostn,util,percent,$util"
-
+  echo "$stamp,io_profile_vdb_$hostn,rrqm,seconds,$rrqm"
+  echo "$stamp,io_profile_vdb_$hostn,wrqm,seconds,$wrqm"
+  echo "$stamp,io_profile_vdb_$hostn,r,seconds,$r"
+  echo "$stamp,io_profile_vdb_$hostn,w,seconds,$w"
+  echo "$stamp,io_profile_vdb_$hostn,rsec,seconds,$rsec"
+  echo "$stamp,io_profile_vdb_$hostn,wsec,seconds,$wsec"
+  echo "$stamp,io_profile_vdb_$hostn,avgrq,seconds,$avgrq"
+  echo "$stamp,io_profile_vdb_$hostn,avgqu,seconds,$avgqu"
+  echo "$stamp,io_profile_vdb_$hostn,await,seconds,$await"
+  echo "$stamp,io_profile_vdb_$hostn,svctm,seconds,$svctm"
+  echo "$stamp,io_profile_vdb_$hostn,util,percent,$util"
+fi
 done 2>/dev/null
 
 #####

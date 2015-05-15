@@ -39,7 +39,7 @@ do
 	for adaptors in $ADAPTORS
 	do  
 		val=`$SSH "$prefix$host" "ls /data/collector/${adaptors} 2>/dev/null" | wc -l`
-    		echo "$stamp,Collector_Backlog_${hostn},count,$val" 
+    		echo "$stamp,collector_backlog,${hostn},count,$val" 
 	done
 done
 

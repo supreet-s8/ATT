@@ -28,18 +28,23 @@ stamp=`date +%s`
 # Volume Stream
 
 
-for host in $cnp0vip
+for host in $col
 do
   #-----
-  hostn='';hostn=`/bin/grep -w "$host" /etc/hosts | awk '{print $2}' | sed 's/ //g'`
-  if [[ ! ${hostn} ]]; then hostn=`$SSH "$host" "hostname"`; fi
-  if [[ ! ${hostn} ]]; then hostn="$host"; fi
+  hostn='';hostn=`/bin/grep -w "$prefix$host" /etc/hosts | awk '{print $2}' | sed 's/ //g'`
+  if [[ ! ${hostn} ]]; then hostn=`$SSH "$prefix$host" "hostname"`; fi
+  if [[ ! ${hostn} ]]; then hostn="$prefix$host"; fi
   #-----
 
-	for feed in 1 2 3 4
-	do  
-		val=`$SSH "$host" "cat /var/log/messages" | grep -i "MSP_RAW_${SITENAME}_${feed}"|grep -v grep | tail -1 | awk '{ print $12, $13 }'`
-    		echo "$stamp,Volume_Stream,${hostn},count,$val" 
+        for feed in 1 2 3 4
+        do
+                val=`$SSH "$prefix$host" "cat /var/log/messages" | grep -i "MSP_RAW_${SITENAME}_${feed}"|grep -v grep | tail -1 | awk '{ print $NF }'`
+	                processed=`echo $val|cut -d, -f1`
+                if [[ ! $processed ]]; then processed="N/A"; fi
+                skipped=`echo $val|cut -d, -f2`
+                if [[ ! $skipped ]]; then skipped="N/A"; fi                
+                echo "$stamp,msp_raw_stream_${hostn},processed_${feed},count,$processed"
+                echo "$stamp,msp_raw_stream_${hostn},skipped_${feed},count,$skipped"        
 	done
 done
 

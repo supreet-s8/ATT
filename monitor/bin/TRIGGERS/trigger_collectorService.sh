@@ -26,12 +26,12 @@ stamp=`date +%s`
 
 for colIp in $col; do
 collectorServiceStatus='';
-collectorServiceStatus=`$SSH $colIp "/opt/tms/bin/cli -t 'en' 'show pm process collector' " | grep "Current status" | awk -F ":" '{print $NF}' | sed 's/ //g'`
+collectorServiceStatus=`$SSH $prefix$colIp "/opt/tms/bin/cli -t 'en' 'show pm process collector' " | grep "Current status" | awk -F ":" '{print $NF}' | sed 's/ //g'`
 if [[ ${PIPESTATUS[0]} -ne '0' ]]; then collectorServiceStatus="N/A"; fi
 
   if [[ "${collectorServiceStatus}" != 'running' ]]; then
     #alert $collectorServiceStatus MASTER_COLLECTOR $stamp
-    . ${BIN}/email.sh "$collectorServiceStatus" "COLLECTOR_$colIp" "$stamp" "running" "$base"
+    . ${BIN}/email.sh "$collectorServiceStatus" "COLLECTOR_$prefix$colIp" "$stamp" "running" "$base"
   fi
 done
 # ----------------------------------------------------------------------------------------
