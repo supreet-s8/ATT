@@ -43,8 +43,9 @@ do
 			pState="$pState $process"
 		fi	
 	done
+        if [[ $pState ]]; then
 	. ${BIN}/email.sh "Not_Running ($pState)" "NAMENODE_$host" "$stamp" "Running" "$base"
-
+	fi
 done
 
 # ----------------------------------------------------------------------------------------
@@ -65,9 +66,9 @@ do
 			pState="$pState $process"
 		fi
         done
-
+	if [[ $pState ]]; then
 	. ${BIN}/email.sh "Not_Running ($pState)" "COLLECTOR_$prefix$host" "$stamp" "Running" "$base"
-
+	fi
 done
 
 # ----------------------------------------------------------------------------------------
@@ -86,8 +87,9 @@ do
 			pState="$pState $process"
 		fi
         done
-
+	if [[ $pState ]]; then
 	. ${BIN}/email.sh "Not_Running ($pState)" "DATANODE_$prefix$host" "$stamp" "Running" "$base"
+	fi
 done
 
 # ----------------------------------------------------------------------------------------
