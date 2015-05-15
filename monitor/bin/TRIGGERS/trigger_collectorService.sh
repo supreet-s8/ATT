@@ -25,7 +25,7 @@ stamp=`date +%s`
 #-------------------------------------------------------------------------------------------------
 
 for colIp in $col; do
-collectorServiceStatus='';
+collectorServiceStatus='N/A';
 collectorServiceStatus=`$SSH $prefix$colIp "/opt/tms/bin/cli -t 'en' 'show pm process collector' " | grep "Current status" | awk -F ":" '{print $NF}' | sed 's/ //g'`
 if [[ ${PIPESTATUS[0]} -ne '0' ]]; then collectorServiceStatus="N/A"; fi
 
