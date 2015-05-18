@@ -108,10 +108,8 @@ done
 # Compression ratio based on estimated raw file size from processed collector output.
       incomingRawFileSize='0'
       H1=`date -d "${LATENCY} hours ago" +%Y/%m/%d/%H`
-      stamp1=`date -d "${LATENCY} hours ago" +%s`
-      val=`$SSH ${host} "$HADOOP dfs -dus /data/collector/output/edrAsn/$H1 2>/dev/null" | awk '{print $NF}'`
+      val=`$HADOOP dfs -dus /data/collector/output/edrAsn/$H1 2>/dev/null | awk '{print $NF}'`
       incomingRawFileSize=`echo "scale=2;($val)*$FACTOR" | bc 2>/dev/null`
-      #echo "$stamp,estimated_input_data_volume,${hostn},bytes,$incomingRawFileSize"
 
       if [[ ${processedFileSizeTotal} -eq '0' ]]; then
         echo "$stamp,hdfs,estimated_compression_Total,ratio,N/A"

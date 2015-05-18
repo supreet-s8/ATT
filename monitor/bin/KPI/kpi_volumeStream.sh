@@ -38,7 +38,7 @@ do
 
         for feed in 1 2 3 4
         do
-                val=`$SSH "$prefix$host" "cat /var/log/messages" | grep -i "MSP_RAW_${SITENAME}_${feed}"|grep -v grep | tail -1 | awk '{ print $NF }'`
+                val=`$SSH $prefix$host "cat /var/log/messages | grep -i MSP_RAW_${SITENAME}_${feed} | grep -v grep | tail -1" | awk '{ print $NF }'`
 	                processed=`echo $val|cut -d, -f1`
                 if [[ ! $processed ]]; then processed="N/A"; fi
                 skipped=`echo $val|cut -d, -f2`
