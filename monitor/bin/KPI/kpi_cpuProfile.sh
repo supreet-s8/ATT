@@ -61,7 +61,7 @@ for host in $col $cmp; do
   echo "$stamp,cpu_profile_$hostn,iowait,percent,$iowait"
   echo "$stamp,cpu_profile_$hostn,irq,percent,$irq"
   echo "$stamp,cpu_profile_$hostn,soft,percent,$soft"
-  echo "$stamp,cpu_profile_$hostn,steal,percent,$stael"
+  echo "$stamp,cpu_profile_$hostn,steal,percent,$steal"
   echo "$stamp,cpu_profile_$hostn,guest,percent,$guest"
   echo "$stamp,cpu_profile_$hostn,idle,percent,$idle"
 
