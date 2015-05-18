@@ -35,6 +35,9 @@ function iNstall {
 	echo "-----Installing AT&T Monitoring Framework"
 	for host in ${NN}; do
 	   ${SSH} $host '/bin/mount -o remount,rw /'
+        if [[ `${SSH} $host "/bin/ls ${INSTALLPATH}/monitor/bin/KPI/kpi-* 2>/dev/null"` ]]; then 
+	   ${SSH} $host "/bin/rm -rf ${INSTALLPATH}/monitor/bin/KPI/kpi-* 2>/dev/null" 
+  	fi
 	   ${SSH} $host "/bin/mkdir -p ${INSTALLPATH}"
 	   /usr/bin/scp -q ${SRCFILE} root@${host}:${DEST}
 	   ${SSH} $host "/bin/tar zxvf ${DEST}/${TOOL} -C ${INSTALLPATH}" 1>/dev/null
