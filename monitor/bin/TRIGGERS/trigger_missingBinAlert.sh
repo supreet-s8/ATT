@@ -28,7 +28,7 @@ stamp=`date +%s`
 # Input Data Volume 
 
 H1=`date -d "${LATENCY} hours ago" +%Y/%m/%d/%H`
-#H1="2015/03/25/17"
+#H1="2012/10/02/17"
 
 out=''
 for host in $cnp0vip
@@ -38,22 +38,30 @@ do
   if [[ ! ${hostn} ]]; then hostn=`$SSH $host "hostname"`; fi
   if [[ ! ${hostn} ]]; then hostn="$prefix$host"; fi
   #-----
+
+ for k in 1 2
+ do
  
- for adaptors in $ADAPTORS
- do  
-  for i in `seq -w 00 05 55`
+  for adaptors in $ADAPTORS
   do  
-	val=`$SSH ${host} "$HADOOP dfs -ls /data/collector/output/${adaptors}/$H1/${i}/* 2>/dev/null" | grep DONE`
+   for i in `seq -w 00 05 55`
+   do  
+	val=`$SSH ${host} "$HADOOP dfs -ls /data/collector/output/${k}/${adaptors}/$H1/${i}/* 2>/dev/null" | grep DONE`
 	if [[ ! $val ]]; then
 		
 		out+="$H1/${i};"
 		 
   	fi	
-  done
+   done
+
   if [[ $out ]]
   then
-	. ${BIN}/email.sh "Following bins missing for adaptor ${adaptors} $out" "COLLECTOR_$cnp0vip" "$stamp" "N/A" "$base"
+	. ${BIN}/email.sh "Following bins missing for adaptor ${adaptors} $out" "COLLECTOR_${k}_$cnp0vip" "$stamp" "N/A" "$base"
   fi
+  done
+
+out=''
+
  done
 
 done

@@ -36,7 +36,7 @@ for host in $col $cmp; do
   
   val=`$SSH $prefix$host "$CLI 'show version'"|grep "Product release"|awk '{print $NF}'`
  
-  echo "$stamp,SW_version_$hostn,Product release,$val" 
+  echo "$stamp,sw_version,$hostn,Release,$val" 
 
 
 done 2>/dev/null

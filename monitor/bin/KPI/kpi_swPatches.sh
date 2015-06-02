@@ -45,7 +45,7 @@ for host in $col $cmp; do
 
 if [[ ! $val ]];then val="N/A";else val=`echo $val|sed 's/;$//g'`;fi
 
- echo "$stamp,SW_patches,$hostn,patches,$val" 
+ echo "$stamp,sw_patches,$hostn,patches,$val" 
 
 done 2>/dev/null
 
