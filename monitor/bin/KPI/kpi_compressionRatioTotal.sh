@@ -108,7 +108,7 @@ done
 # Compression ratio based on estimated raw file size from processed collector output.
       incomingRawFileSize='0'
       H1=`date -d "${LATENCY} hours ago" +%Y/%m/%d/%H`
-      val=`$HADOOP dfs -dus /data/collector/output/{1,2}/edrAsn/$H1 2>/dev/null | awk '{print $NF}'`
+      val=`$HADOOP dfs -dus /data/collector/output/{1,2}/edrAsn/$H1/*/* 2>/dev/null | grep -v DONE | awk 'BEGIN {sum = 0} { sum+= $NF } END { print sum }'`
       incomingRawFileSize=`echo "scale=2;($val)*$FACTOR" | bc 2>/dev/null`
 
       if [[ ${processedFileSizeTotal} -eq '0' ]]; then
