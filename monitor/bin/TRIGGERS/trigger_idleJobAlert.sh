@@ -44,7 +44,7 @@ do
 		job_freq=3600  
 	fi
 	
-	val=`/opt/oozie/bin/oozie jobs -oozie http://172.30.14.50:8080/oozie -len  100000000 |grep RUNNING|sed 's/RUNNING/ RUNNING/g' |grep -w $job|awk '{print $6" "$7}'`
+	val=`/opt/oozie/bin/oozie jobs -oozie http://${cnp0vip}:8080/oozie -len  100000000 |grep RUNNING|sed 's/RUNNING/ RUNNING/g' |grep -w $job|awk '{print $6" "$7}'`
 	
 	job_stamp=`date +%s -d"$val"`
 	

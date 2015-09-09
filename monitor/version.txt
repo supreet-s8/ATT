@@ -2,7 +2,7 @@
 
 Purpose	:	Basic release of scripts based application specific monitoring for AT&T.
 Toolset	:	AT&T Monitoring services.
-Version	:	v-0.7
+Version	:	v-0.8
 Owner	:	Guavus Tools & Development Practices.
 Support	:	gds.tools.coreteam@guavus.com
 

@@ -44,7 +44,7 @@ do
  
   for adaptors in $ADAPTORS
   do  
-   for i in `seq -w 00 05 55`
+   for i in 00 15 30 45 ## changed to 15 min
    do  
 	val=`$SSH ${host} "$HADOOP dfs -ls /data/collector/output/${k}/${adaptors}/$H1/${i}/* 2>/dev/null" | grep DONE`
 	if [[ ! $val ]]; then
@@ -67,3 +67,22 @@ out=''
 done
 
 #####
+
+### DataTransferJob missing bins
+H2=`date -d "1 hours ago" +%Y/%m/%d/%H`
+
+for i in `seq -w 00 05 55`
+do
+	val_df=`$SSH ${host} "$HADOOP dfs -ls /data/output/DataFactory/${H2}/${i}/* 2>/dev/null" | grep DONE`
+	if [[ ! $val_df ]];then
+		out_df+="$H1/${i};"
+	fi
+done
+
+  if [[ $out_df ]]
+  then
+        . ${BIN}/email.sh "Following bins missing for DataFactory Job $out_df" "DataFactory_Job" "$stamp" "N/A" "$base"
+  fi
+
+out_df=''
+
