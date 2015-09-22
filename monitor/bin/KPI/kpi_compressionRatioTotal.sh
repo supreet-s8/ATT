@@ -116,8 +116,8 @@ done
       else
         ratioAll=$(awk "BEGIN {printf \"%.2f\",(${incomingRawFileSize}/${processedFileSizeTotal})}")
         echo "$stamp,hdfs,estimated_compression_Total,ratio,$ratioAll"
-	if [[ ${ratioAll} -ne '0' ]]; then
-        if [ `echo "${ratioAll} < ${threshold}" | bc` -eq '1' ]; then
+	if [[ `echo "${ratioAll} != 0" | bc` -eq '1' ]]; then
+        if [[ `echo "${ratioAll} < ${threshold}" | bc` -eq '1' ]]; then
                 . ${BIN}/email.sh "${ratioAll}" "EstimatedRawFileSize Vs CompressedOutgoingFileSize" "$stamp" "$threshold" "$base"
         fi
 	fi
