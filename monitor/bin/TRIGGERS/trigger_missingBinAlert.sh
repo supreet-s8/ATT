@@ -44,9 +44,10 @@ do
  
   for adaptors in $ADAPTORS
   do  
-   for i in 00 15 30 45 ## changed to 15 min
+   #for i in 00 15 30 45 ## changed to 15 min
+   for i in `seq -w 00 05 55`
    do  
-	val=`$SSH ${host} "$HADOOP dfs -ls /data/collector/output/${k}/${adaptors}/$H1/${i}/* 2>/dev/null" | grep DONE`
+	val=`$SSH ${host} "$HADOOP dfs -ls /data/collector/output/${k}/${adaptors}/${H1}/${i}/* 2>/dev/null" | grep DONE`
 	if [[ ! $val ]]; then
 		
 		out+="$H1/${i};"
@@ -75,7 +76,7 @@ for i in `seq -w 00 05 55`
 do
 	val_df=`$SSH ${host} "$HADOOP dfs -ls /data/output/DataFactory/${H2}/${i}/* 2>/dev/null" | grep DONE`
 	if [[ ! $val_df ]];then
-		out_df+="$H1/${i};"
+		out_df+="$H2/${i};"
 	fi
 done
 
