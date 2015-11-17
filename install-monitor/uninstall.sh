@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TOOL="att-monitoring-v07.tgz"
+TOOL="att-monitoring-v11.tgz"
 BASEPATH='/tmp/install-monitor'
 SRCFILE="${BASEPATH}/${TOOL}"
 INSTALLPATH="/data/scripts/"

@@ -76,6 +76,9 @@ done
    esac
 
  done
+      uncat='0'; uncat=`${HADOOP} dfs -text ${OUTCOMPRESSEDFILES_HDFS}/${H2}/00/*uncat* 2>/dev/null | wc -l `
+      # Added as per inputs from ST on MSP - MultiService Proxy stats calculation correction in MR.
+      pri=`echo "$pri - $uncat" | bc`
       mapRTot=`expr $pri + $dom + $msi`
       echo "$stamp,hdfs,processedMapRecords_Primary,count,$pri"
       echo "$stamp,hdfs,processedMapRecords_Domain,count,$dom"

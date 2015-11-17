@@ -23,7 +23,7 @@ thresh
 if [[ ! $threshold ]]; then threshold=90; fi; if [[ ! $switch ]]; then switch="off"; fi; if [[ $switch != "on" ]]; then exit; fi
 #-------------------------------------------------------------------------------------------------
 # Overriding SENDTO and SENDCC variables.
-SENDTO="robert.phillips@guavus.com,samuel.joseph@guavus.com,shailendra.kumar@guavus.com,hannes.vanrooyen@guavus.com"
+SENDTO="prashant.singh1@guavus.com,samuel.joseph@guavus.com,shailendra.kumar@guavus.com,hannes.vanrooyen@guavus.com"
 SENDCC="supreet.singh@guavus.com"
 #-------------------------------------------------------------------------------------------------
 
