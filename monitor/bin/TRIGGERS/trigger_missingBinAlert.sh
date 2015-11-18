@@ -70,7 +70,8 @@ done
 #####
 
 ### DataTransferJob missing bins
-H2=`date -d "1 hours ago" +%Y/%m/%d/%H`
+#H2=`date -d "1 hours ago" +%Y/%m/%d/%H`
+H2=`date -d "${LATENCY} hours ago" +%Y/%m/%d/%H`
 
 for i in `seq -w 00 05 55`
 do
