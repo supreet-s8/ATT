@@ -34,47 +34,82 @@ Hostname=`hostname`
 msgFile='';msgFile="/tmp/$base-$stamp"
 printf "To: ${SENDTO}\nCc: ${SENDCC}\nSubject: $DCNAME : $Hostname : DataFactory Job Missing bins \n\n\n" >> ${msgFile}
 
-### DataTransferJob missing bins
-H2=`date -d "1 hours ago" +%Y/%m/%d/%H`
+### DataTransferJob workaround
 
-for i in `seq -w 00 05 55`
-do
-	val_df=`$SSH $cnp0vip "$HADOOP dfs -ls /data/output/DataFactory/${H2}/${i}/* 2>/dev/null" | grep DONE`
-	if [[ ! $val_df ]];then
-		out_df+="$H2/${i};"
-	fi
-done
+## get time from tmp file
+ 
+run_time=`ssh -q root@${cnp0vip} "$HADOOP dfs -cat /data/dfdt_tmp_hdfs/metadata.txt 2>/dev/null" | tail -1 | sed 's/[A-Z]/ /g'`
 
-  if [[ $out_df ]]
-  then
+if [ $? -ne 0 ]
+then
+	exit
+fi 
+
+## get bin time
+bin_time=`ssh -q root@${cnp0vip} "$HADOOP dfs -cat /data/dfdt_tmp_hdfs/metadata.txt 2>/dev/null" | grep currentBinTime | cut -d= -f2 | sed 's/[A-Z]/ /g'`
+
+bins=`ssh -q root@${cnp0vip} "$HADOOP dfs -cat /data/dfdt_tmp_hdfs/metadata.txt 2>/dev/null" | grep currentBinTime | cut -d= -f2 | sed 's/-/\//g' | sed 's/[A-Z]/\//g' | sed 's/:/\//g'`
+
+epoc_bin_time=`date +%s -d"${bin_time}"`
+
+epoc_run_time=`date +%s -d"${run_time}"`
+
+cur_time=`date +%s`
+
+time_diff=`echo "$cur_time - $epoc_run_time" | bc`
+
+if [ $time_diff -ge 900 ]
+then
 
 	Email='1'
-	echo "DataFactory Job Missing bins" >> ${msgFile}
-	echo "ACTION_SUMMARY : $Date" >> ${msgFile}
-        echo "Following bins missing for DataFactory Job " >> ${msgFile}
-	echo $out_df |sed 's/;/\n/g'  >> ${msgFile}
+	work_flow_id=`/opt/oozie/bin/oozie jobs -oozie http://${cnp0vip}:8080/oozie -len  100000000 |grep RUNNING|sed 's/RUNNING/ RUNNING/g' | grep -w DataTransferJob | awk '{print $1}'`
+	
+	echo $work_flow_id
+	
+	out=`$HADOOP dfs -ls ${bins}/_DONE 2>/dev/null`
+	
+	if [ $? -ne 0 ]
+	then
+		
+		dones=''
+		for i in `seq -w $epoc_bin_time 300 $cur_time`
+		do
+				
+			file_time=`date -d@"$i" +"%Y/%m/%d/%H/%M"`
+			done_file=`$HADOOP dfs -ls /data/output/DataFactory/${file_time}/_DONE 2>/dev/null`
+		
+			if [ $? -ne 0 ]
+			then
+				dones+="/data/output/DataFactory/${file_time};"
+			
+			fi
+		done
+	
+		if [[ $dones ]]
+		then
 
-	last_bin_date=`echo $out_df|awk -F';' '{print $(NF-1)}'`
-	format_last_bin_date=`echo $last_bin_date | awk -F'/' '{print $1"-"$2"-"$3" "$4":"$5}'`
-	epc_format_last_bin_date=`date +%s -d"$format_last_bin_date"`
-	epc_update_date=`echo "$epc_format_last_bin_date + 300" | bc`
-	update_date=`date -d@"$epc_update_date" +'%Y-%m-%dT%H:%MZ'`
-	
-	echo "Initiating workaround steps, stopping DataTransferJob.." >> ${msgFile}
-	
-	$SSH $cnp0vip "/opt/tms/bin/pmx subshell oozie stop jobname DataTransferJob 2>/dev/null"
-	sleep 60
-	
-	$SSH $cnp0vip "$HADOOP dfs -rmr /data/dfdt_tmp_hdfs/
-	$SSH $cnp0vip "$HADOOP fs -rm /data/DataTransferJob/done.txt
-	echo "Restarting the job with a start time set to $update_date" >> ${msgFile}
-	$SSH $cnp0vip "/opt/tms/bin/pmx subshell oozie set job DataTransferJob attribute jobStart $update_date 2>/dev/null"
-	$SSH $cnp0vip "/opt/tms/bin/pmx subshell oozie set job DataTransferJob action DfDataTransferAction attribute currentBinTime $update_date 2>/dev/null"
-	$SSH $cnp0vip "/opt/tms/bin/pmx subshell oozie run job DataTransferJob 2>/dev/null"
-	
-  fi
+			total_missing=`echo $dones|sed 's/;$//g'`
+			echo "DataFactory Job Missing bins" >> ${msgFile}
+			echo "DONE FILE- ${bins}/_DONE NOT FOUND" >> ${msgFile}
+			echo "total missing bins till current time $Date : $total_missing" >> ${msgFile}
+			echo "Creating missing bins" >>  ${msgFile}
+			
+			for t in `echo $total_missing | sed 's/;/\n/g'`
+			do
+				$HADOOP dfs -touchz ${t}/_DONE 2>/dev/null
+			done
 
-out_df=''
+			echo "Missing bins created " >>  ${msgFile}
+		fi
+
+	else
+
+		echo "DataTransferJob is Stuck on particular bin : ${bins}, but DONE FILE of particular bin is present. Please check" >> ${msgFile}
+		echo "$out" >> ${msgFile}
+				
+	fi
+	
+fi
 
 if [[ $Email -eq '1' ]]; then
    $NOTIFY < ${msgFile}
