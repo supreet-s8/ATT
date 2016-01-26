@@ -76,9 +76,9 @@ done
 ## DataNode
 
 ServiceStatus=''
-pState=''
 for host in $cmp
 do
+	pState=''
         for process in datanode
         do
                 ServiceStatus=`$SSH $prefix$host "/bin/ps -ef" | grep "Dproc_${process}" | grep -v grep`
